@@ -6,7 +6,12 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ['id','name','description','active']
-
+    
+    def validate_name(self, data):
+        if len(data) < 2:
+            raise serializers.ValidationError('name is too short')
+        else:
+            return data
 
 
 # class MovieSerializer(serializers.Serializer):
