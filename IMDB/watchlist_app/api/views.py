@@ -1,15 +1,16 @@
 from rest_framework.response import Response
 from rest_framework import status
-from watchlist_app.models import WatchList,StreamPlatform
+from watchlist_app.models import WatchList,StreamPlatform,Review
 # from rest_framework.decorators import api_view
+from rest_framework import generics
 from rest_framework.views import APIView
-from watchlist_app.api.serializers import WatchListSerializer,StreamPlatformSerializer
+from watchlist_app.api.serializers import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer
 
 
 class StreamPlatformAV(APIView):
     def get(self,request):
         platform = StreamPlatform.objects.all()
-        serializer = StreamPlatformSerializer(platform, many=True)
+        serializer = StreamPlatformSerializer(platform, many=True,context={'request': request})
         return Response(serializer.data)
     
     def post(self,request):
@@ -81,6 +82,27 @@ class WatchDetailsAV(APIView):
         movie = WatchList.objects.get(pk=pk)
         movie.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
+    
+    
+class ReviewList(generics.ListAPIView):
+    serializer_class = ReviewSerializer
+    
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Review.objects.filter(watchlist=pk)
+    
+class ReviewCreate(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+    
+    def perform_create(self,serializer):
+        pk = self.kwargs.get('pk')
+        watchlist = WatchList.objects.get(pk=pk)
+        serializer.save(watchlist=watchlist)
+
+class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    
         
 
 # @api_view(['GET','POST'])
