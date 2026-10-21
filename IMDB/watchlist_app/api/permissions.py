@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class AdminOrReadOnly(permissions.BasePermission):
+class IsAdminOrReadOnly(permissions.BasePermission):
     
     def has_permission(self,request,view):
         if request.method in permissions.SAFE_METHODS:
@@ -10,10 +10,10 @@ class AdminOrReadOnly(permissions.BasePermission):
             return bool(request.user and request.user.is_staff)
         
 
-class ReviewUserOrReadOnly(permissions.BasePermission):
+class IsReviewUserOrReadOnly(permissions.BasePermission):
     
     def has_object_permission(self,request,view,obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         else:
-            return bool(obj.review_user == request.user)
+            return bool(obj.review_user == request.user or request.user.is_staff)

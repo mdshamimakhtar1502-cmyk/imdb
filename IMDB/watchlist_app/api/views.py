@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 from watchlist_app.models import WatchList,StreamPlatform,Review
-from watchlist_app.api.permissions import AdminOrReadOnly,ReviewUserOrReadOnly
+from watchlist_app.api.permissions import IsAdminOrReadOnly,IsReviewUserOrReadOnly
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from rest_framework.exceptions import ValidationError
 # from rest_framework.decorators import api_view
@@ -11,6 +11,8 @@ from watchlist_app.api.serializers import WatchListSerializer,StreamPlatformSeri
 
 
 class StreamPlatformAV(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+    
     def get(self,request):
         platform = StreamPlatform.objects.all()
         serializer = StreamPlatformSerializer(platform, many=True,context={'request': request})
@@ -25,6 +27,8 @@ class StreamPlatformAV(APIView):
             return Response(serializer.errors)
 
 class StreamPlatformDetailAV(APIView):
+    permission_classes = [IsAdminOrReadOnly]   
+    
     def get(self,request,pk):
         try:
             platform = StreamPlatform.objects.get(pk=pk)
@@ -50,6 +54,8 @@ class StreamPlatformDetailAV(APIView):
 
 
 class WatchListAV(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+    
     def get(self,request):
         movies = WatchList.objects.all()
         serializer = WatchListSerializer(movies,many=True)
@@ -63,7 +69,9 @@ class WatchListAV(APIView):
         else:
             return Response(serializer.errors)
         
-class WatchDetailsAV(APIView):
+class WatchDetailAV(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+    
     def get(self,request,pk):
         try:
             movie = WatchList.objects.get(pk=pk)
@@ -109,7 +117,7 @@ class WatchDetailsAV(APIView):
 
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         pk = self.kwargs.get('pk')
@@ -150,7 +158,7 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     
-    permission_classes = [ReviewUserOrReadOnly]
+    permission_classes = [IsReviewUserOrReadOnly]
         
     
         
