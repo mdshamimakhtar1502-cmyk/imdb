@@ -7,6 +7,10 @@ from rest_framework.exceptions import ValidationError
 # from rest_framework.decorators import api_view
 from rest_framework import generics
 from rest_framework.views import APIView
+from rest_framework import filters
+from watchlist_app.api.pagination import WatchListPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.throttling import AnonRateThrottle,UserRateThrottle
 from watchlist_app.api.serializers import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer
 
 
@@ -51,7 +55,15 @@ class StreamPlatformDetailAV(APIView):
         platform.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+class WatchListGV(generics.ListAPIView):
+    queryset = WatchList.objects.all()
+    serializer_class = WatchListSerializer
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_fields = ['title','platform__name']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title','platform__name']
+    pagination_class = WatchListPagination
+    
 
 class WatchListAV(APIView):
     permission_classes = [IsAdminOrReadOnly]
@@ -95,26 +107,6 @@ class WatchDetailAV(APIView):
         return Response(status = status.HTTP_204_NO_CONTENT)
     
     
-# class ReviewList(generics.ListAPIView):
-#     serializer_class = ReviewSerializer
-    
-#     def get_queryset(self):
-#         pk = self.kwargs['pk']
-#         return Review.objects.filter(watchlist=pk)
-    
-# class ReviewCreate(generics.CreateAPIView):
-#     serializer_class = ReviewSerializer
-    
-#     def perform_create(self,serializer):
-#         pk = self.kwargs.get('pk')
-#         watchlist = WatchList.objects.get(pk=pk)
-#         serializer.save(watchlist=watchlist)
-
-# class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Review.objects.all()
-#     serializer_class = ReviewSerializer
-
-
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
     # permission_classes = [IsAuthenticated]
@@ -159,6 +151,7 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ReviewSerializer
     
     permission_classes = [IsReviewUserOrReadOnly]
+    throttle_classes = [AnonRateThrottle,UserRateThrottle]
         
     
         
