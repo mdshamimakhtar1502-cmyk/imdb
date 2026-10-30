@@ -1,17 +1,17 @@
 from rest_framework.response import Response
-from rest_framework import status
-from watchlist_app.models import WatchList,StreamPlatform,Review
-from watchlist_app.api.permissions import IsAdminOrReadOnly,IsReviewUserOrReadOnly
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from rest_framework.exceptions import ValidationError
-# from rest_framework.decorators import api_view
-from rest_framework import generics
+from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework import filters
-from watchlist_app.api.pagination import WatchListPagination
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from rest_framework.throttling import AnonRateThrottle,UserRateThrottle
-from watchlist_app.api.serializers import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
+from watchlist_app.api.permissions import IsAdminOrReadOnly,IsReviewUserOrReadOnly
+from watchlist_app.models import WatchList,StreamPlatform,Review
+from watchlist_app.api.serializers import (WatchListSerializer,StreamPlatformSerializer,ReviewSerializer)
+from watchlist_app.api.pagination import WatchListPagination
 
 
 class StreamPlatformAV(APIView):
@@ -29,6 +29,7 @@ class StreamPlatformAV(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
 
 class StreamPlatformDetailAV(APIView):
     permission_classes = [IsAdminOrReadOnly]   
@@ -55,11 +56,10 @@ class StreamPlatformDetailAV(APIView):
         platform.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class WatchListGV(generics.ListAPIView):
     queryset = WatchList.objects.all()
     serializer_class = WatchListSerializer
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['title','platform__name']
     filter_backends = [filters.SearchFilter]
     search_fields = ['title','platform__name']
     pagination_class = WatchListPagination
@@ -80,6 +80,7 @@ class WatchListAV(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+       
         
 class WatchDetailAV(APIView):
     permission_classes = [IsAdminOrReadOnly]
@@ -109,12 +110,12 @@ class WatchDetailAV(APIView):
     
 class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
-    # permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         pk = self.kwargs.get('pk')
         return Review.objects.filter(watchlist=pk)
-    
+
+
 class ReviewCreate(generics.CreateAPIView):
     
     serializer_class = ReviewSerializer
@@ -154,45 +155,6 @@ class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     throttle_classes = [AnonRateThrottle,UserRateThrottle]
         
     
-        
+       
 
-# @api_view(['GET','POST'])
-# def movie_list(request):
-#     if request.method == 'GET':
-#         movies = Movie.objects.all()
-#         serializer = MovieSerializer(movies,many=True)
-#         return Response(serializer.data)
-    
-#     if request.method == 'POST':
-#         serializer = MovieSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors)
-        
 
-# @api_view(['GET','PUT','DELETE'])
-# def movie_details(request,pk):
-    
-#     if request.method == 'GET':
-#         try:
-#             movie = Movie.objects.get(pk=pk)
-#         except Movie.DoesNotExist:
-#             return Response({'error':'movie does not exist'},status=status.HTTP_400_BAD_REQUEST)
-#         serializer = MovieSerializer(movie)
-#         return Response(serializer.data)
-    
-#     if request.method == 'PUT':
-#         movie = Movie.objects.get(pk=pk)
-#         serializer = MovieSerializer(movie,data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors)
-
-#     if request.method == 'DELETE':
-#         movie = Movie.objects.get(pk=pk)
-#         movie.delete()
-#         return Response(status = status.HTTP_204_NO_CONTENT)
